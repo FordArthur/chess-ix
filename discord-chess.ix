@@ -1,0 +1,258 @@
+; piece:target => move
+
+
+;
+; ACCURATE VERSION
+;
+
+(var out-of-board? #(or (< % 0) (> % 7)) to-num-col {:a 0, :b 1, :c 2, :d 3, :e 4, :f 5, :g 6, :h, 7} 
+  help
+  "-------------------------Chess-------------------------
+  new                           start a new game
+  move piece:target             moves 'piece' into 'target'     
+  help topic                    display help about 'topic'
+  
+  Topics:
+  
+  how-to-move                   more info on moving
+  basic-rules                   base rules on chess
+  general-strategy              guide on basic principles
+  [nothing]                     displays this message
+  -------------------------------------------------------"
+  help-move
+  "-------------------------Move-------------------------
+  For basic moves, the command is 'move pP:tT', where p is 
+  the collumn (in letter form a-h) of the piece you want
+  to move and P the row. The same applies to t and T but
+  for the target piece/square.
+
+  For castleling, the command is Dc, where D is the
+  direction where you want to castle (left | right).
+  That is, short castle (as white) is lc and long, rc.
+  The same applies but reverse when playing as black.
+  ------------------------------------------------------"
+  help-basic
+  "-------------------------Basic------------------------
+  The objective is simple: Check mate your opponent, that
+  is, when the king no longer can move to a safe square
+  when in check.
+
+  Pieces can move like:
+  Pawn                    1 square forward and 2 if in
+                          the starting row. However,
+                          they take diagonally. (p)
+  
+  Rook                    Any square diagonally and
+                          Horizontally. (r)
+  
+  Bishop                  Any square diagonally. (b)
+
+  Knight                  'L' shape, they can 'jump'
+                          through pieces. (k)
+  
+  Queen                   Rook and bishop combined. (q)
+
+  King                    Any square but with distance 1. (i)
+  ------------------------------------------------------"
+  help-strategy
+  "-------------------------Strat------------------------
+  While there is no 'God' opening or some magic rule,
+  some good practices are:
+
+  1. Take the center early: The center of the board
+  should be where most of your pieces point to, this is
+  because a center attack is usually very overwhelming.
+
+  2. Always look for checks: While it is not smart to
+  give a check whenever you can, it is always crucial
+  to see checks, as they are the only move that can't
+  be ignored.
+
+  3. Put in the shoes of your enemy: You cannot hope
+  that your enemy doesn't see the best move, think of
+  what you would do in their position and go from there.  
+  ------------------------------------------------------")
+
+(function get-help topic
+  (match topic
+    ""                  help
+    "how-to-move"       help-move
+    "basic-rules"       help-basic
+    "general-strategy"  help-strategy
+    "Invalid topic"))
+
+(function squares-between sq-a sq-b inclusive?
+   (let [dif-row dif-col] (map (fn a b (abs (- a b))) sq-a sq-b)
+        zero|num? #((= % 0) false %)
+        ddist (or (zero|num? dif-row) (zero|num? dif-col) 0)
+        rep|range (fn sq sq-p row|col dif-sq (if (zero? dif-sq) (repeat (row|col sq) ddist) (range (row|col sq)(row|col sq-p)))))
+   ((if inclusive? val (drop 0)) (map vec (rep|range sq-b sq-a 0 dif-row) (rep|range sq-b sq-a 1 dif-col))))
+
+(function chess-castle-parse anot
+  (match anot
+    "lc"      [(d-idx (white-turn? "i" "I") true) (d-idx (white-turn? "r" "R") true) true]
+    "rc"      [(d-idx (white-turn? "i" "I")) (d-idx (white-turn? "r" "R")) false]))
+
+(function castle [king-row king-col] [rook-row rook-col] white? left?
+  (let dx (if left? -2 2))
+  (legal-move [king-row king-col] [king-row (+ dx king-col)] (white? "i" "I"))
+  (legal-move [rook-row rook-col] [rook-row (+ (/ dx -2) king-col)] (white? "r" "R")))
+
+(function can-castle? left? white?
+  (let castle-range (squares-between (d-idx (if white? "i" "I")) (d-idx (if white? "r" "R") left?)))
+  (and (! (.. or (map @(cast-enemies white?) castle-range))) (! (move-record (if white? "i" "I"))) (! (move-record (if white? "r" "R")))))
+
+(function collision-check sq-piece sq-target
+  (catch (.. or (map #(!= (fetch-piece %) " ") (squares-between sq-piece sq-target))) false))
+
+(function last-piece sq-ext sq-extp sq-middle
+  (let middle-ext (fn mid ext (-> (squares-between mid ext true) @(map fetch-piece) @(remove space?) -1)))
+  [(middle-ext sq-middle sq-ext) (middle-ext sq-middle sq-extp)])
+
+(function game-start
+  (let mayor-piece-start ["R" "K" "B" "Q" "I" "B" "K" "R"])
+  (var board [mayor-piece-start (repeat "P" 8) (repeat " " 8) (repeat " " 8) (repeat " " 8) (repeat " " 8) (repeat "p" 8) (map lower-case mayor-piece-start)]
+       players-in-game {:white null, :black null}
+       white-turn? true
+       move-record []
+       timer (time))
+  (display "Ready"))
+
+(function virtual-move-check? sq-piece sq-target piece white?
+  (legal-move sq-piece sq-target piece)
+  (let result (cast-enemies white? (d-idx (white? "i" "I"))))
+  (legal-move sq-target sq-piece piece)
+  result)
+
+(function record-players who
+  (if (.. and (vals players-in-game)) (return))
+  (if ((reverse-dict players-in-game) who) (return))
+  (var! players-in-game #(if white-turn? (set-at [:white] who %) (set-at [:black] who %))))
+
+(function record-moves piece
+  (var! move-record append piece))
+
+(function reverse-dict dic
+  (.. .. dict (map vec (vals dic) (keys dic))))
+
+(function legal-move piece-square target-square piece
+  (var! board #(-> % (set-at piece-square " " ) (set-at target-square piece))))
+
+(function chess-parse anot
+  (let [piece target] (split ":" anot)
+       to-col-num #(-> % 0 @(to-key) @(to-num-col))
+       to-row-num #(-> % 1 @(to-num) dec @(- 7)))
+  [[(to-row-num piece) (to-col-num piece)] [(to-row-num target) (to-col-num target)]])
+
+(function friend-in-target? target w?
+  (let spless-lower? #(if (= " " %) (! w?) (lower? %)))
+  (= w? (spless-lower? (fetch-piece target))))
+
+(function fetch-piece [row col]
+  (-> board row col))
+
+(function d-idx ins f|l
+  (let indx ((if f|l idx last-idx) (flatten board) ins))
+  [(// indx 8) (rem indx 8)])
+
+(function final-sq [dx dy] [sq-row sq-col]
+  (let [dsq-row dsq-col] (map + [dx dy] [sq-row sq-col]))
+  (if (or (out-of-board? dsq-row) (out-of-board? dsq-col)) (return [sq-row sq-col]) (recur [dx dy] [dsq-row dsq-col])))
+
+(function gen-king-moves [x y] (remove #(.. or (map out-of-board? %)) [[x (inc y)] [x (dec y)] [(inc x) y] [(inc x) (inc y)] [(inc x) (dec y)] [(dec x) y] [(dec x) (inc y)] [(dec x) (dec y)]]))
+
+(function gen-knight-moves sq
+  (for (fn a b (map + a b)) [sq] [[2  1]  [1  2]  [-1  2]  [-2  1]  [-2  -1]  [-1  -2]  [1  -2]  [2  -1]]))
+
+(function cast-enemies w? square
+  (let close-pieces-in (fn dxy (last-piece (final-sq dxy square) (final-sq (map neg dxy) square) square))
+       closest-pieces {:hor|vec (.. vec (close-pieces-in [0 1]) (close-pieces-in [1 0])),
+                       :diag (.. vec (close-pieces-in [1 -1]) (close-pieces-in [1 1])),
+                       :knight (remove #(reduce or (map out-of-board? %)) (gen-knight-moves square))}
+       diagfw (skip-each 1 ((w? reverse val ) (:diag closest-pieces)))
+       hor|vec-piece? #(or (= % (w? "R" "r")) (= % (w? "Q" "q")))
+       diag-piece? #(or (= % (w? "B" "b")) (= % (w? "Q" "q")))
+       pawn? @(= (w? "P" "p"))
+       knight? @(= (w? "K" "k")))
+  (.. or (map hor|vec-piece? (:hor|vec closest-pieces)) (map diag-piece? (:diag closest-pieces)) (map knight? (:knight closest-pieces)) (map pawn? diagfw)))
+
+(function rook-check piece target
+  (let [dif-row dif-col] (map - piece target))
+  (xor (= dif-row 0) (= dif-col 0)))
+
+(function bishop-check piece target
+  (let [dif-row dif-col] (map (fn a b (abs (- a b))) piece target))
+  (and (= dif-row dif-col) (!= dif-row 0)))
+
+(function knight-check piece target
+ (let [dif-row dif-col] (map (fn a b (abs (- a b))) piece target))
+ (or (and (= dif-row 1) (= dif-col 2)) (and (= dif-row 2) (= dif-col 1))))
+
+(function queen-check piece target
+  (or (rook-check piece target) (bishop-check piece target)))
+
+(function king-check piece target w?
+  ((gen-king-moves piece) target))
+
+(function pawn-check piece target white?
+  (let [dif-row dif-col] (map - piece target)
+       starting-row (white? 6 1)
+       forwards (if white? 1 -1))
+  (if (and (= forwards dif-row) (= (abs dif-col) 1) (-> move-record 0 @(= (white? "P" "p"))) (-> ((fn [a b] [(+ forwards a) (+ dif-col b)]) target) fetch-piece space?)) (return true))
+  (if (and (= 1 (abs dif-col)) (!= " " (fetch-piece target))) (return true))
+  (if (!= dif-col 0) (return false))
+  (or (= dif-row forwards) (and (= dif-row (* forwards 2)) (= starting-row (0 piece)))))
+
+(function success piece
+  (var! white-turn? !)
+  (record-moves piece)
+  (display (str (white-turn? "White" "Black") "'s turn")))
+
+(function piece-check piece-square target-square piece white?
+  (match (lower-case piece)
+         "r" (and (rook-check piece-square target-square) (! (collision-check piece-square target-square))) ; try taking by moving forwards
+         "k" (knight-check piece-square target-square)
+         "b" (and (bishop-check piece-square target-square) (! (collision-check piece-square target-square)))
+         "q" (and (queen-check piece-square target-square) (! (collision-check piece-square target-square)))
+         "i" (and (king-check piece-square target-square) (! (collision-check piece-square target-square)))
+         "p" (and (pawn-check piece-square target-square white?)  (! (collision-check piece-square target-square)))))
+
+(function move anot who
+  (record-players who)
+  (var [piece-square target-square left?] (catch (chess-parse anot) (chess-castle-parse anot))
+       piece (fetch-piece piece-square)
+       white? (lower? piece))
+  
+  (if (! ((vals players-in-game) who)) (return "This is not your game!"))
+  (if (!= white-turn? (-> players-in-game reverse-dict #(% who) @(= :white))) (return "It is not your turn!"))
+  (if (!= (white? :white :black) (-> players-in-game reverse-dict #(% who))) (return "You can't move your opponents pieces!"))
+  (if (null? left?)
+    (if
+      (and      
+        (piece-check piece-square target-square piece white?)  
+        (! (friend-in-target? target-square white?))
+        (! (virtual-move-check? piece-square target-square piece white?)))
+      (do (legal-move piece-square target-square piece) (success piece))
+      (display "illegal move"))
+    (if 
+      (and
+            (can-castle? left? white?)
+            (! (collision-check piece-square target-square)))
+      (do (castle piece-square target-square piece white? left?) (success piece))
+      (display "illegal move"))
+    
+  ))
+  
+(function display comment
+  (str (rreplace "[\"\[\]]" "" (join "\n" board)) "\n" (str* " " (- 8 (len comment))) comment))
+
+(function handler contents who
+  (let [cmd movement] (-> contents (split " ") (adj _ (comp (skip 1) (join " ")))))
+  (print [cmd movement])
+  (match cmd
+    "new"   (game-start)
+    "move"  (move movement who)
+    "run"   (eval movement)
+    "help"  (get-help movement)
+    "ver"   timer)
+    help)
