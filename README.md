@@ -1,2 +1,1 @@
-# chess-ix
-A web app for the discord insitux bot that runs chess
+# im begging you to work
