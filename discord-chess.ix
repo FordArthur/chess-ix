@@ -208,7 +208,7 @@
 (function piece-check piece-square target-square piece white?
   (let p (lower-case piece)
        f (match p "r" rook-check "k" knight-check "b" bishop-check "q" queen-check "i" king-check "p" pawn-check))
-  (return-when (and (!= p "k") (collision-check piece-square target-square)) false)
+  (when (and (!= p "k") (collision-check piece-square target-square)) (return false))
   (f piece-square target-square white?))
 
 (function move anot who
