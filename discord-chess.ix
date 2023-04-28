@@ -93,6 +93,10 @@
     "lc"      [(d-idx (white-turn? "i" "I") true) (d-idx (white-turn? "r" "R") true) true]
     "rc"      [(d-idx (white-turn? "i" "I")) (d-idx (white-turn? "r" "R")) false]))
 
+(function en-passant [pc-x pc-y] [tg-x tg-y] piece
+  (legal-move [pc-x pc-y] [tg-x tg-y] piece)
+  (legal move (d-idx " ") [pc-x tg-y] " "))
+
 (function castle [king-row king-col] [rook-row rook-col] white? left?
   (let dx (if left? -2 2))
   (legal-move [king-row king-col] [king-row (+ dx king-col)] (white? "i" "I"))
@@ -198,9 +202,9 @@
   (let [dif-row dif-col] (map - piece target)
        starting-row (white? 6 1)
        forwards (if white? 1 -1))
-  (if (and (= forwards dif-row) (= (abs dif-col) 1) (-> move-record 0 @(= (white? "P" "p"))) (-> ((fn [a b] [(+ forwards a) (+ dif-col b)]) target) fetch-piece space?)) (return true))
-  (if (and (= 1 (abs dif-col)) (!= " " (fetch-piece target))) (return true))
-  (if (!= dif-col 0) (return false))
+  (if (and (= forwards dif-row) (= (abs dif-col) 1) (-> move-record 0 @(= (white? "P" "p"))) (-> ((fn [a b] [(+ forwards a) (+ dif-col b)]) target) fetch-piece space?)) (do (var !en-passant true) (return true)))
+  (when (and (= 1 (abs dif-col)) (!= " " (fetch-piece target))) (return true))
+  (when (!= dif-col 0) (return false))
   (or (= dif-row forwards) (and (= dif-row (* forwards 2)) (= starting-row (0 piece)))))
 
 (function success piece
@@ -209,19 +213,17 @@
   (display (str (white-turn? "White" "Black") "'s turn")))
 
 (function piece-check piece-square target-square piece white?
-  (match (lower-case piece)
-         "r" (and (rook-check piece-square target-square) (! (collision-check piece-square target-square))) ; try taking by moving forwards
-         "k" (knight-check piece-square target-square)
-         "b" (and (bishop-check piece-square target-square) (! (collision-check piece-square target-square)))
-         "q" (and (queen-check piece-square target-square) (! (collision-check piece-square target-square)))
-         "i" (and (king-check piece-square target-square) (! (collision-check piece-square target-square)))
-         "p" (and (pawn-check piece-square target-square white?)  (! (collision-check piece-square target-square)))))
+  (let p (lower-case piece)
+       f (match p "r" rook-check "k" knight-check "b" bishop-check "q" queen-check "i" king-check "p" pawn-check))
+  (return-when (and (!= p "k") (collision-check piece-square target-square)) false)
+  (f piece-square target-square white?))
 
 (function move anot who
   (record-players who)
   (var [piece-square target-square left?] (catch (chess-parse anot) (chess-castle-parse anot))
        piece (fetch-piece piece-square)
-       white? (lower? piece))
+       white? (lower? piece)
+       !en-passant false)
   
   (if (! ((vals players-in-game) who)) (return "This is not your game!"))
   (if (!= white-turn? (-> players-in-game reverse-dict #(% who) @(= :white))) (return "It is not your turn!"))
@@ -232,7 +234,11 @@
         (piece-check piece-square target-square piece white?)  
         (! (friend-in-target? target-square white?))
         (! (virtual-move-check? piece-square target-square piece white?)))
-      (do (legal-move piece-square target-square piece) (success piece))
+      (do 
+        (if !en-passant
+          (en-passant piece-square target-square piece)
+          (legal-move piece-square target-square piece))
+      (success piece))
       (display "illegal move"))
     (if 
       (and
