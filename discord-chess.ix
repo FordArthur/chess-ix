@@ -120,7 +120,7 @@
        players-in-game {:white null, :black null}
        white-turn? true
        move-record []
-       match-start (time)
+       last-move-time (time)
        players-clock {:white match-mins, :black match-mins})
   (disp-settings)
   (display "Ready" disp-min disp-help))
@@ -212,8 +212,8 @@
   (or (= dif-row forwards) (and (= dif-row (* forwards 2)) (= starting-row (0 piece)))))
 
 (function success piece
-  (var! white-turn? !)
-  (var! players-clock update-at [(if white-turn? :black :white)] #(- % (- (time) match-start)))
+  (var last-move-time (time))
+  (var! players-clock update-at [(if white-turn? :black :white)] #(- % (- (time) last-move-time)) white-turn? !)
   (record-moves piece)
   (display (str (white-turn? "White" "Black") "'s turn")))
 
@@ -289,5 +289,4 @@
     "move"  (move movement who)  
     "run"   (eval movement)
     "help"  (get-help movement)
-    "ver"   match-start
     help))
