@@ -192,7 +192,7 @@
   ((gen-king-moves piece) target))
 
 (function pawn-check piece target white?
-  (let [dif-row dif-col] (map - piece target)
+  (var [dif-row dif-col] (map - piece target)
        starting-row (white? 6 1)
        forwards (if white? 1 -1))
   (if (and (= forwards dif-row) (= (abs dif-col) 1) (-> move-record 0 @(= (white? "P" "p"))) (-> ((fn [a b] [(+ forwards a) (+ dif-col b)]) target) fetch-piece space?)) (do (var !en-passant true) (return true)))
