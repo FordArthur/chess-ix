@@ -86,6 +86,8 @@
     "lc"      [(d-idx (white-turn? "i" "I") true) (d-idx (white-turn? "r" "R") true) true]
     "rc"      [(d-idx (white-turn? "i" "I")) (d-idx (white-turn? "r" "R")) false]))
 
+(function spawn piece sq (legal-move (d-idx " ") sq piece))
+
 (function en-passant [pc-x pc-y] [tg-x tg-y] piece
   (legal-move [pc-x pc-y] [tg-x tg-y] piece)
   (legal-move (d-idx " ") [pc-x tg-y] " "))
@@ -93,7 +95,8 @@
 (function castle [king-row king-col] [rook-row rook-col] white? left?
   (let dx (if left? -2 2))
   (legal-move [king-row king-col] [king-row (+ dx king-col)] (white? "i" "I"))
-  (legal-move [rook-row rook-col] [rook-row (+ (/ dx -2) king-col)] (white? "r" "R")))
+  (let [nk-x nk-y] (d-ix (white? "i" "I")))
+  (legal-move [rook-row rook-col] [rook-row (+ (/ dx -2) nk-y)] (white? "r" "R")))
 
 (function can-castle? left? white?
   (let castle-range (squares-between (d-idx (if white? "i" "I")) (d-idx (if white? "r" "R") left?)))
