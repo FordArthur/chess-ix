@@ -74,6 +74,11 @@
     "general-strategy"  help-strategy
     "Invalid topic"))
 
+(function disp-settings min? help?
+  (if (= min? help? null)
+      (var disp-min true disp-help false)
+      (var disp-min min? disp-help help)))
+
 (function squares-between sq-a sq-b inclusive?
    (let [dif-row dif-col] (map (fn a b (abs (- a b))) sq-a sq-b)
         zero|num? #((= % 0) false %)
@@ -116,7 +121,8 @@
        white-turn? true
        move-record []
        match-start (time))
-  (display "Ready"))
+  (disp-settings)
+  (display "Ready" disp-min disp-help))
 
 (function virtual-move-check? sq-piece sq-target piece white?
   (legal-move sq-piece sq-target piece)
@@ -241,18 +247,35 @@
           (en-passant piece-square target-square piece)
           (legal-move piece-square target-square piece))
       (success piece))
-      (display "illegal move"))
+      (display "illegal move" disp-min disp-help))
     (if 
       (and
             (can-castle? left? white?)
             (! (collision-check piece-square target-square)))
       (do (castle piece-square target-square white? left?) (success piece))
-      (display "illegal move"))
+      (display "illegal move" disp-min disp-help))
     
   ))
-  
-(function display comment
-  (str (rreplace "[\"\[\]]" "" (join "\n" board)) "\n" (str* " " (- 8 (len comment))) comment))
+
+(function row-name row num (str (- 8 num) " | " row))
+; (function display comment (str (rreplace "[\"\[\]]" "" (join "\n" board)) "\n" (str* " " (- 8 (len comment))) comment))
+
+(function display comment minimal? help? 
+  (if minimal?
+  (str (join " " (map (if help? row-name val) (map (join " ") board) (range 8)))
+       (if help? "               \na b c d e f g h\n" "\n")
+        (str* " " (- 8 (len comment))) 
+        comment)
+  (str (if help? "----" "") 
+        "------------------------------\n|" 
+        (join "|\n------------------------------\n|" (map (if help? row-name val) (map (join " | ") board) (range 8))) 
+        "|\n"
+        (if help? "----" "")
+        "------------------------------\n"
+        (if help? "    a    b    c    d    e    f    g    h\n" )
+        (str* " " (- 10 (len comment))) 
+        comment))
+  )
 
 (function handler contents who
   (let [cmd movement] (-> contents (split " ") #[(0 %) (join " " (skip 1 %))]))
@@ -260,6 +283,7 @@
   (match cmd
     "new"   (game-start)
     "move"  (move movement who)
+    "set"   
     "run"   (eval movement)
     "help"  (get-help movement)
     "ver"   match-start
