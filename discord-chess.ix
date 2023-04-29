@@ -213,7 +213,7 @@
 
 (function success piece
   (var! white-turn? !)
-  (var! players-clock update-at [(if white-turn? :white :black)] #(- % (- (time) match-start)))
+  (var! players-clock update-at [(if white-turn? :black :white)] #(- % (- (time) match-start)))
   (record-moves piece)
   (display (str (white-turn? "White" "Black") "'s turn")))
 
