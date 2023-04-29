@@ -115,12 +115,13 @@
   [(middle-ext sq-middle sq-ext) (middle-ext sq-middle sq-extp)])
 
 (function game-start match-duration
-  (let mayor-piece-start ["R" "K" "B" "Q" "I" "B" "K" "R"])
+  (let mayor-piece-start ["R" "K" "B" "Q" "I" "B" "K" "R"] match-mins (catch (* 60000 match-duration)) 7200000)
   (var board [mayor-piece-start (repeat "P" 8) (repeat " " 8) (repeat " " 8) (repeat " " 8) (repeat " " 8) (repeat "p" 8) (map lower-case mayor-piece-start)]
        players-in-game {:white null, :black null}
        white-turn? true
        move-record []
-       match-start (time))
+       match-start (time)
+       players-clock {:white match-mins, :black match-mins})
   (disp-settings)
   (display "Ready" disp-min disp-help))
 
@@ -212,6 +213,7 @@
 
 (function success piece
   (var! white-turn? !)
+  (var! players-clock update-at [(if white-turn? :white :black)] #(- % (- (time) match-start)))
   (record-moves piece)
   (display (str (white-turn? "White" "Black") "'s turn")))
 
@@ -233,9 +235,10 @@
        white? (lower? piece)
        !en-passant false)
   
-  (if (! ((vals players-in-game) who)) (return "This is not your game!"))
-  (if (!= white-turn? (-> players-in-game reverse-dict #(% who) @(= :white))) (return "It is not your turn!"))
-  (if (!= (white? :white :black) (-> players-in-game reverse-dict #(% who))) (return "You can't move your opponents pieces!"))
+  (when (>= 0 ((if white-turn? :white :black) players-clock)) (return "Your time's up!"))
+  (when (! ((vals players-in-game) who)) (return "This is not your game!"))
+  (when (!= white-turn? (-> players-in-game reverse-dict #(% who) @(= :white))) (return "It is not your turn!"))
+  (when (!= (white? :white :black) (-> players-in-game reverse-dict #(% who))) (return "You can't move your opponents pieces!"))
   (if (null? left?)
     (if
       (and      
@@ -258,30 +261,31 @@
   ))
 
 (function row-name row num (str (- 8 num) " | " row))
-; (function display comment (str (rreplace "[\"\[\]]" "" (join "\n" board)) "\n" (str* " " (- 8 (len comment))) comment))
 
-(function display comment minimal? help? 
-  (if minimal?
-  (str (join " " (map (if help? row-name val) (map (join " ") board) (range 8)))
-       (if help? "               \na b c d e f g h\n" "\n")
-        (str* " " (- 8 (len comment))) 
-        comment)
-  (str (if help? "----" "") 
-        "------------------------------\n|" 
-        (join "|\n------------------------------\n|" (map (if help? row-name val) (map (join " | ") board) (range 8))) 
-        "|\n"
-        (if help? "----" "")
-        "------------------------------\n"
-        (if help? "    a    b    c    d    e    f    g    h\n" )
-        (str* " " (- 10 (len comment))) 
-        comment))
-  )
+(function display comment (str (rreplace "[\"\[\]]" "" (join "\n" board)) "\n" (str* " " (- 8 (len comment))) comment))
+
+;(function display comment minimal? help? 
+;  (if minimal?
+;  (str (join "\n" (map (if help? row-name val) (map (join " ") board) (range 8)))
+;       (if help? "               \na b c d e f g h\n" "\n")
+;        (str* " " (- 8 (len comment))) 
+;        comment)
+;  (str (if help? "----" "") 
+;        "------------------------------\n|" 
+;        (join "|\n------------------------------\n|" (map (if help? row-name val) (map (join " | ") board) (range 8))) 
+;        "|\n"
+;        (if help? "----" "")
+;        "------------------------------\n"
+;        (if help? "    a    b    c    d    e    f    g    h\n" )
+;        (str* " " (- 10 (len comment))) 
+;        comment))
+;  )
 
 (function handler contents who
   (let [cmd movement] (-> contents (split " ") #[(0 %) (join " " (skip 1 %))]))
   (print [cmd movement])
   (match cmd
-    "new"   (game-start)
+    "new"   (game-start movement)
     "move"  (move movement who)
     "set"   
     "run"   (eval movement)
