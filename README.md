@@ -1,2 +1,8 @@
-# Oh hey it works!
-kind of
+# Chess-ix
+
+A web app for the insitux discord bot that runs chess.
+
+# TODO:
+
+- timer
+- better displaying
