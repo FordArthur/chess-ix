@@ -286,8 +286,7 @@
   (print [cmd movement])
   (match cmd
     "new"   (game-start movement)
-    "move"  (move movement who)
-    "set"   
+    "move"  (move movement who)  
     "run"   (eval movement)
     "help"  (get-help movement)
     "ver"   match-start
