@@ -106,13 +106,13 @@
   (let middle-ext (fn mid ext (-> (squares-between mid ext true) @(map fetch-piece) @(remove space?) -1)))
   [(middle-ext sq-middle sq-ext) (middle-ext sq-middle sq-extp)])
 
-(function game-start
+(function game-start match-duration
   (let mayor-piece-start ["R" "K" "B" "Q" "I" "B" "K" "R"])
   (var board [mayor-piece-start (repeat "P" 8) (repeat " " 8) (repeat " " 8) (repeat " " 8) (repeat " " 8) (repeat "p" 8) (map lower-case mayor-piece-start)]
        players-in-game {:white null, :black null}
        white-turn? true
        move-record []
-       timer (time))
+       match-start (time))
   (display "Ready"))
 
 (function virtual-move-check? sq-piece sq-target piece white?
@@ -191,11 +191,14 @@
 (function king-check piece target
   ((gen-king-moves piece) target))
 
+!chess run (fn [a b] [(+ forwards a) (+ dif-col b)]) [2 3]
+
 (function pawn-check piece target white?
   (var [dif-row dif-col] (map - piece target)
        starting-row (white? 6 1)
-       forwards (if white? 1 -1))
-  (if (and (= forwards dif-row) (= (abs dif-col) 1) (-> move-record 0 @(= (white? "P" "p"))) (-> ((fn [a b] [(+ forwards a) (+ dif-col b)]) target) fetch-piece space?)) (do (var !en-passant true) (return true)))
+       forwards (if white? 1 -1)
+       enemy-pawn? @(= (white? "P" "p")))
+  (if (and (= forwards dif-row) (= (abs dif-col) 1) (-> move-record -1 enemy-pawn?) (-> ((fn [pc-x pc-y] [tg-x tg-y] (vec pc-x tg-y)) piece target) fetch-piece enemy-pawn?)) (do (var !en-passant true) (return true)))
   (if (and (= 1 (abs dif-col)) (!= " " (fetch-piece target))) (return true))
   (if (!= dif-col 0) (return false))
   (or (= dif-row forwards) (and (= dif-row (* forwards 2)) (= starting-row (0 piece)))))
