@@ -205,11 +205,16 @@
   (record-moves piece)
   (display (str (white-turn? "White" "Black") "'s turn")))
 
-(function piece-check piece-square target-square piece white?
-  (var p (lower-case piece)
-       matcher (match p "r" rook-check "k" knight-check "b" bishop-check "q" queen-check "i" king-check "p" pawn-check))
+(function piece-check pc-sq tg-sq piece white?
+  (let p (lower-case piece))
   (when (and (!= p "k") (collision-check piece-square target-square)) (return false))
-  (matcher piece-square target-square white?))
+  (match p
+    "p"           (pawn-check pc-sq tg-sq white?)
+    "r"           (rook-check pc-sq tg-sq)
+    "k"           (knight-check pc-sq tg-sq)
+    "b"           (bishop-check pc-sq tg-sq)
+    "q"           (queen-check pc-sq tg-sq)
+    "i"           (king-check pc-sq tg-sq)))
 
 (function move anot who
   (record-players who)
