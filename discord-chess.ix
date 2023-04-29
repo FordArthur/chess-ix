@@ -191,8 +191,6 @@
 (function king-check piece target
   ((gen-king-moves piece) target))
 
-!chess run (fn [a b] [(+ forwards a) (+ dif-col b)]) [2 3]
-
 (function pawn-check piece target white?
   (var [dif-row dif-col] (map - piece target)
        starting-row (white? 6 1)
