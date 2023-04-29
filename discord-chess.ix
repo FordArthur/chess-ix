@@ -95,7 +95,7 @@
 (function castle [king-row king-col] [rook-row rook-col] white? left?
   (let dx (if left? -2 2))
   (legal-move [king-row king-col] [king-row (+ dx king-col)] (white? "i" "I"))
-  (let [nk-x nk-y] (d-ix (white? "i" "I")))
+  (let [nk-x nk-y] (d-idx (white? "i" "I")))
   (legal-move [rook-row rook-col] [rook-row (+ (/ dx -2) nk-y)] (white? "r" "R")))
 
 (function can-castle? left? white?
