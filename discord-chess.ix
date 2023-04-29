@@ -88,7 +88,7 @@
 
 (function en-passant [pc-x pc-y] [tg-x tg-y] piece
   (legal-move [pc-x pc-y] [tg-x tg-y] piece)
-  (legal move (d-idx " ") [pc-x tg-y] " "))
+  (legal-move (d-idx " ") [pc-x tg-y] " "))
 
 (function castle [king-row king-col] [rook-row rook-col] white? left?
   (let dx (if left? -2 2))
