@@ -115,7 +115,7 @@
   [(middle-ext sq-middle sq-ext) (middle-ext sq-middle sq-extp)])
 
 (function game-start match-duration
-  (let mayor-piece-start ["R" "K" "B" "Q" "I" "B" "K" "R"] match-mins (catch (* 60000 match-duration)) 7200000)
+  (let mayor-piece-start ["R" "K" "B" "Q" "I" "B" "K" "R"] match-mins (catch (* 60000 match-duration) 7200000))
   (var board [mayor-piece-start (repeat "P" 8) (repeat " " 8) (repeat " " 8) (repeat " " 8) (repeat " " 8) (repeat "p" 8) (map lower-case mayor-piece-start)]
        players-in-game {:white null, :black null}
        white-turn? true
@@ -134,7 +134,7 @@
 (function record-players who
   (if (.. and (vals players-in-game)) (return))
   (if ((reverse-dict players-in-game) who) (return))
-  (var! players-in-game #(if white-turn? (set-at [:white] who %) (set-at [:black] who %))))
+  (var! players-in-game set-at [(if white-turn? :white :black)] who))
 
 (function record-moves piece
   (var! move-record append piece))
