@@ -212,9 +212,9 @@
   (or (= dif-row forwards) (and (= dif-row (* forwards 2)) (= starting-row (0 piece)))))
 
 (function success piece
-  (var last-move-time (time))
-  (var! players-clock (update-at [(if white-turn? :black :white)] #(- % (- (time) last-move-time))))
   (var! white-turn? !)
+  (var! players-clock update-at [(if white-turn? :black :white)] #(- % (- (time) last-move-time)))
+  (var last-move-time (time))
   (record-moves piece)
   (display (str (white-turn? "White" "Black") "'s turn")))
 
