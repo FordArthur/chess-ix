@@ -205,10 +205,8 @@
   (record-moves piece)
   (display (str (white-turn? "White" "Black") "'s turn")))
 
-
-
 (function piece-check piece-square target-square piece white?
-  (let p (lower-case piece)
+  (var p (lower-case piece)
        matcher (match p "r" rook-check "k" knight-check "b" bishop-check "q" queen-check "i" king-check "p" pawn-check))
   (when (and (!= p "k") (collision-check piece-square target-square)) (return false))
   (matcher piece-square target-square white?))
