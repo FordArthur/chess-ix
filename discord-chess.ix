@@ -264,7 +264,7 @@
        white? (lower? piece)
        !en-passant false)
   
-  (when (or (.. map out-of-board? [piece-square target-square]) (= "E" piece-square)) (return "Provide a move!"))
+  (when (or (.. or (.. map out-of-board? [piece-square target-square])) (= "E" piece-square)) (return "Provide a move!"))
 
   (when (>= 0 ((if white-turn? :white :black) players-clock)) (return "Your time's up!"))
   (when (! ((vals players-in-game) who)) (return "This is not your game!"))
