@@ -80,11 +80,6 @@
     "general-strategy"  help-strategy
     "Invalid topic"))
 
-(function disp-settings min? help?
-  (if (= min? help? null)
-      (var disp-min true disp-help false)
-      (var disp-min min? disp-help help)))
-
 (function squares-between sq-a sq-b inclusive?
    (let [dif-row dif-col] (map (fn a b (abs (- a b))) sq-a sq-b)
         zero|num? #((= % 0) false %)
@@ -127,7 +122,8 @@
        white-turn? true
        move-record []
        last-move-time (time)
-       players-clock {:white match-mins, :black match-mins})
+       players-clock {:white match-mins, :black match-mins}
+       helpful-disp? false expanded-disp? false)
   (disp-settings)
   (display "Ready" disp-min disp-help))
 
@@ -270,23 +266,6 @@
 (function row-name row num (str (- 8 num) " | " row))
 
 (function display comment (str (rreplace "[\"\[\]]" "" (join "\n" board)) "\n" (str* " " (- 8 (len comment))) comment))
-
-;(function display comment minimal? help? 
-;  (if minimal?
-;  (str (join "\n" (map (if help? row-name val) (map (join " ") board) (range 8)))
-;       (if help? "               \na b c d e f g h\n" "\n")
-;        (str* " " (- 8 (len comment))) 
-;        comment)
-;  (str (if help? "----" "") 
-;        "------------------------------\n|" 
-;        (join "|\n------------------------------\n|" (map (if help? row-name val) (map (join " | ") board) (range 8))) 
-;        "|\n"
-;        (if help? "----" "")
-;        "------------------------------\n"
-;        (if help? "    a    b    c    d    e    f    g    h\n" )
-;        (str* " " (- 10 (len comment))) 
-;        comment))
-;  )
 
 (function display comment
   (if expanded-disp?
