@@ -65,6 +65,12 @@
   that your enemy doesn't see the best move, think of
   what you would do in their position and go from there.  
   ------------------------------------------------------")
+(function set-display setting
+  (match setting 
+    "helpful"           (var helpful-disp? true)
+    "normal"            (var helpful-disp? false)
+    "expanded"          (var expanded-disp? true)
+    "minimal"           (var expanded-disp? false)))
 
 (function get-help topic
   (match topic
@@ -282,6 +288,11 @@
 ;        comment))
 ;  )
 
+(function display comment
+  (if expanded-disp?
+  (str (if helpful-disp? "-----" "") "------------------------------\n|" (join (str "|\n------------------------------" (if helpful-disp? "-----" "") "\n|") (map (if helpful-disp? row-name val) (map (join " | ") board) (range 8)))  "|\n" (if helpful-disp? "-----" "") "------------------------------\n" (if helpful-disp? "   | a | b | c | d | e | f | g | h|\n   --------------------------------\n" "") (str* " " (- 10 (len comment))) comment)
+  (str (join "\n" (map (if helpful-disp? row-name val) (map (join " ") board) (range 8))) (if helpful-disp? "\n    ----------------\n    a b c d e f g h\n" "") (str* " " (- 8 (len comment)))  comment)))
+
 (function handler contents who
   (let [cmd movement] (-> contents (split " ") #[(0 %) (join " " (skip 1 %))]))
   (print [cmd movement])
@@ -289,5 +300,6 @@
     "new"   (game-start movement)
     "move"  (move movement who)  
     "run"   (eval movement)
+    "set"   (set-display movement)
     "help"  (get-help movement)
     help))
