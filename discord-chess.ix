@@ -70,7 +70,9 @@
     "helpful"           (var helpful-disp? true)
     "normal"            (var helpful-disp? false)
     "expanded"          (var expanded-disp? true)
-    "minimal"           (var expanded-disp? false)))
+    "minimal"           (var expanded-disp? false)
+    (return "uknown setting"))
+  (str "Display is now " setting))
 
 (function get-help topic
   (match topic
@@ -270,7 +272,7 @@
 (function display comment
   (if expanded-disp?
   (str (if helpful-disp? "-----" "") "------------------------------\n|" (join (str "|\n------------------------------" (if helpful-disp? "-----" "") "\n|") (map (if helpful-disp? row-name val) (map (join " | ") board) (range 8)))  "|\n" (if helpful-disp? "-----" "") "------------------------------\n" (if helpful-disp? "   | a | b | c | d | e | f | g | h|\n   --------------------------------\n" "") (str* " " (- 10 (len comment))) comment)
-  (str (join "\n" (map (if helpful-disp? row-name val) (map (join " ") board) (range 8))) (if helpful-disp? "\n    ----------------\n    a b c d e f g h\n" "") (str* " " (- 8 (len comment)))  comment)))
+  (str (join "\n" (map (if helpful-disp? row-name val) (map (join " ") board) (range 8))) (if helpful-disp? "\n    ----------------\n    a b c d e f g h\n" "\n") (str* " " (- 8 (len comment)))  comment)))
 
 (function handler contents who
   (let [cmd movement] (-> contents (split " ") #[(0 %) (join " " (skip 1 %))]))
