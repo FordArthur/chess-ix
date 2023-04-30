@@ -115,7 +115,7 @@
   [(middle-ext sq-middle sq-ext) (middle-ext sq-middle sq-extp)])
 
 (function game-start match-duration
-  (let mayor-piece-start ["R" "K" "B" "Q" "I" "B" "K" "R"] match-mins (catch (* 60000 match-duration) 7200000))
+  (let mayor-piece-start ["R" "K" "B" "Q" "I" "B" "K" "R"] match-mins (catch (* 60000 (to-num match-duration)) 72000000))
   (var board [mayor-piece-start (repeat "P" 8) (repeat " " 8) (repeat " " 8) (repeat " " 8) (repeat " " 8) (repeat "p" 8) (map lower-case mayor-piece-start)]
        players-in-game {:white null, :black null}
        white-turn? true
