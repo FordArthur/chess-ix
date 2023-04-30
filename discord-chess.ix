@@ -271,8 +271,8 @@
 
 (function display comment
   (if expanded-disp?
-  (str (if helpful-disp? "-----" "") "------------------------------\n|" (join (str "|\n------------------------------" (if helpful-disp? "-----" "") "\n|") (map (if helpful-disp? row-name val) (map (join " | ") board) (range 8)))  "|\n" (if helpful-disp? "-----" "") "------------------------------\n" (if helpful-disp? "   | a | b | c | d | e | f | g | h|\n   --------------------------------\n" "") (str* " " (- 10 (len comment))) comment)
-  (str (join "\n" (map (if helpful-disp? row-name val) (map (join " ") board) (range 8))) (if helpful-disp? "\n    ----------------\n    a b c d e f g h\n" "\n") (str* " " (- 8 (len comment)))  comment)))
+  (str (if helpful-disp? "-----" "") "------------------------------\n|" (join (str "|\n------------------------------" (if helpful-disp? "-----" "") "\n|") (map (if helpful-disp? row-name val) (map (join " | ") board) (range 8)))  "|\n" (if helpful-disp? "-----" "") "------------------------------\n" (if helpful-disp? "   | a | b | c | d | e | f | g | h|\n   --------------------------------\n" "") (str* " " (- (if helpful-disp? 17 15) (len comment))) comment)
+  (str (join "\n" (map (if helpful-disp? row-name val) (map (join " ") board) (range 8))) (if helpful-disp? "\n    ----------------\n    a b c d e f g h\n" "\n") (str* " " (- (if helpful-disp? 10 8) (len comment)))  comment)))
 
 (function handler contents who
   (let [cmd movement] (-> contents (split " ") #[(0 %) (join " " (skip 1 %))]))
