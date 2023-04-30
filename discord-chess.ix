@@ -2,14 +2,23 @@
   help
   "-------------------------Chess-------------------------
   new                           start a new game
-  move piece:target             moves 'piece' into 'target'     
+
+  move piece:target             moves 'piece' into 'target'
+
   help topic                    display help about 'topic'
-  
+
+  set setting                   changes the way the board
+                                is displayed
   Topics:
   
   how-to-move                   more info on moving
+
   basic-rules                   base rules on chess
+
   general-strategy              guide on basic principles
+
+  settings                      list on display settings
+
   [nothing]                     displays this message
   -------------------------------------------------------"
   help-move
@@ -64,6 +73,19 @@
   3. Put in the shoes of your enemy: You cannot hope
   that your enemy doesn't see the best move, think of
   what you would do in their position and go from there.  
+  ------------------------------------------------------"
+  help-display
+  "-------------------------Disp-------------------------
+  To apply settings use set [setting], settings are set to
+  minimal and normal after each new game.
+
+  Settings:
+
+  normal/helpful            hide/show the name of columns
+                            ans rows
+
+  minimal/expanded          separate rows and cols by
+                            spaces/hyphens
   ------------------------------------------------------")
 (function set-display setting
   (match setting 
@@ -80,6 +102,7 @@
     "how-to-move"       help-move
     "basic-rules"       help-basic
     "general-strategy"  help-strategy
+    "settings"          help-display
     "Invalid topic"))
 
 (function squares-between sq-a sq-b inclusive?
@@ -92,7 +115,8 @@
 (function chess-castle-parse anot
   (match anot
     "lc"      [(d-idx (white-turn? "i" "I") true) (d-idx (white-turn? "r" "R") true) true]
-    "rc"      [(d-idx (white-turn? "i" "I")) (d-idx (white-turn? "r" "R")) false]))
+    "rc"      [(d-idx (white-turn? "i" "I")) (d-idx (white-turn? "r" "R")) false])
+    "E")
 
 (function spawn piece sq (legal-move (d-idx " ") sq piece))
 
@@ -240,6 +264,8 @@
        white? (lower? piece)
        !en-passant false)
   
+  (when (or (.. map out-of-board? [piece-square target-square]) (= "E" piece-square)) (return "Provide a move!"))
+
   (when (>= 0 ((if white-turn? :white :black) players-clock)) (return "Your time's up!"))
   (when (! ((vals players-in-game) who)) (return "This is not your game!"))
   (when (!= white-turn? (-> players-in-game reverse-dict #(% who) @(= :white))) (return "It is not your turn!"))
@@ -271,12 +297,11 @@
 
 (function display comment
   (if expanded-disp?
-  (str (if helpful-disp? "-----" "") "------------------------------\n|" (join (str "|\n------------------------------" (if helpful-disp? "-----" "") "\n|") (map (if helpful-disp? row-name val) (map (join " | ") board) (range 8)))  "|\n" (if helpful-disp? "-----" "") "------------------------------\n" (if helpful-disp? "   | a | b | c | d | e | f | g | h|\n   --------------------------------\n" "") (str* " " (- (if helpful-disp? 17 15) (len comment))) comment)
-  (str (join "\n" (map (if helpful-disp? row-name val) (map (join " ") board) (range 8))) (if helpful-disp? "\n    ----------------\n    a b c d e f g h\n" "\n") (str* " " (- (if helpful-disp? 10 8) (len comment)))  comment)))
+  (str (if helpful-disp? "-----" "") "------------------------------\n|" (join (str "|\n------------------------------" (if helpful-disp? "-----" "") "\n|") (map (if helpful-disp? row-name val) (map (join " | ") board) (range 8)))  "|\n" (if helpful-disp? "-----" "") "------------------------------\n" (if helpful-disp? "   | a | b | c | d | e | f | g | h|\n   --------------------------------\n" "") (str* " " (- (if helpful-disp? 35 30) (len comment))) comment)
+  (str (join "\n" (map (if helpful-disp? row-name val) (map (join " ") board) (range 8))) (if helpful-disp? "\n    ----------------\n    a b c d e f g h\n" "\n") (str* " " (- (if helpful-disp? 19 15) (len comment)))  comment)))
 
 (function handler contents who
   (let [cmd movement] (-> contents (split " ") #[(0 %) (join " " (skip 1 %))]))
-  (print [cmd movement])
   (match cmd
     "new"   (game-start movement)
     "move"  (move movement who)  
