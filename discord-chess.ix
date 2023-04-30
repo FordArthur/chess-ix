@@ -115,8 +115,8 @@
 (function chess-castle-parse anot
   (match anot
     "lc"      [(d-idx (white-turn? "i" "I") true) (d-idx (white-turn? "r" "R") true) true]
-    "rc"      [(d-idx (white-turn? "i" "I")) (d-idx (white-turn? "r" "R")) false])
-    "E")
+    "rc"      [(d-idx (white-turn? "i" "I")) (d-idx (white-turn? "r" "R")) false]
+    "E"))
 
 (function spawn piece sq (legal-move (d-idx " ") sq piece))
 
