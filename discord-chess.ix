@@ -94,7 +94,7 @@
     "expanded"          (var expanded-disp? true)
     "minimal"           (var expanded-disp? false)
     (return "uknown setting"))
-  (str "Display is now " setting))
+  (display (str "Display is now " setting)))
 
 (function get-help topic
   (match topic
@@ -281,19 +281,19 @@
           (en-passant piece-square target-square piece)
           (legal-move piece-square target-square piece))
       (success piece))
-      (display "illegal move" disp-min disp-help))
+      (display "illegal move"))
     (if 
       (and
             (can-castle? left? white?)
             (! (collision-check piece-square target-square)))
       (do (castle piece-square target-square white? left?) (success piece))
-      (display "illegal move" disp-min disp-help))
+      (display "illegal move"))
     
   ))
 
 (function row-name row num (str (- 8 num) " | " row))
 
-(function display comment (str (rreplace "[\"\[\]]" "" (join "\n" board)) "\n" (str* " " (- 8 (len comment))) comment))
+; (function display comment (str (rreplace "[\"\[\]]" "" (join "\n" board)) "\n" (str* " " (- 8 (len comment))) comment))
 
 (function display comment
   (if expanded-disp?
