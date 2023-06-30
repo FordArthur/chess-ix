@@ -235,7 +235,7 @@
        starting-row (if white? 6 1)
        forwards (if white? 1 -1)
        enemy-pawn? @(= (white? "P" "p")))
-  (if (or (and prom (!= (0 target) final-row)) (and (! prom) (= (0 target) final-row))) (return false))
+  (if (or (and prom (!= (0 target) final-row)) (and (! prom) (= (0 target) final-row)) (! ((map (if white? lower-case val) ["R" "K" "B" "Q"]) prom))) (return false))
   (if (and (= forwards dif-row) (= (abs dif-col) 1) 
            (-> move-record -1 enemy-pawn?) 
            (-> ((fn [pc-x pc-y] [tg-x tg-y] (vec pc-x tg-y)) piece target) fetch-piece enemy-pawn?)) 
