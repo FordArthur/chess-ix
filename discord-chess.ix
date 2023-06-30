@@ -288,7 +288,7 @@
           (do 
               (legal-move piece-square target-square piece)
               (if !promotion
-                  (spawn prom target-square))))
+                  (spawn optprom target-square))))
       (success piece))
       (display "illegal move" disp-min disp-help))
     (if 
