@@ -94,7 +94,7 @@
     "expanded"          (var expanded-disp? true)
     "minimal"           (var expanded-disp? false)
     (return "uknown setting"))
-  (display (str "Display is now " setting)))
+  (str "Display is now " setting))
 
 (function get-help topic
   (match topic
@@ -174,10 +174,10 @@
   (var! board #(-> % (set-at piece-square " " ) (set-at target-square piece))))
 
 (function chess-parse anot
-  (let [piece target] (split ":" anot)
+  (let [piece target optprom] (split ":" anot)
        to-col-num #(-> % 0 @(to-key) @(to-num-col))
        to-row-num #(-> % 1 @(to-num) dec @(- 7)))
-  [[(to-row-num piece) (to-col-num piece)] [(to-row-num target) (to-col-num target)]])
+  [[(to-row-num piece) (to-col-num piece)] [(to-row-num target) (to-col-num target)] null optprom])
 
 (function friend-in-target? target w?
   (let spless-lower? #(if (= " " %) (! w?) (lower? %)))
@@ -229,15 +229,20 @@
 (function king-check piece target
   ((gen-king-moves piece) target))
 
-(function pawn-check piece target white?
+(function pawn-check piece target white? prom
   (var [dif-row dif-col] (map - piece target)
-       starting-row (white? 6 1)
+       final-row (if white? 0 7)
+       starting-row (if white? 6 1)
        forwards (if white? 1 -1)
        enemy-pawn? @(= (white? "P" "p")))
-  (if (and (= forwards dif-row) (= (abs dif-col) 1) (-> move-record -1 enemy-pawn?) (-> ((fn [pc-x pc-y] [tg-x tg-y] (vec pc-x tg-y)) piece target) fetch-piece enemy-pawn?)) (do (var !en-passant true) (return true)))
+  (if (or (and prom (!= (0 target) final-row))) (and (! prom) (= (0 target) final-row)) (return false))
+  (if (and (= forwards dif-row) (= (abs dif-col) 1) 
+           (-> move-record -1 enemy-pawn?) 
+           (-> ((fn [pc-x pc-y] [tg-x tg-y] (vec pc-x tg-y)) piece target) fetch-piece enemy-pawn?)) 
+      (do (var !en-passant true) (return true)))
   (if (and (= 1 (abs dif-col)) (!= " " (fetch-piece target))) (return true))
   (if (!= dif-col 0) (return false))
-  (or (= dif-row forwards) (and (= dif-row (* forwards 2)) (= starting-row (0 piece)))))
+  (if (or (= dif-row forwards) (and (= dif-row (* forwards 2)) (= starting-row (0 piece)))) (if prom (var !promotion true) true) false))
 
 (function success piece
   (var! white-turn? !)
@@ -246,11 +251,11 @@
   (record-moves piece)
   (display (str (white-turn? "White" "Black") "'s turn")))
 
-(function piece-check pc-sq tg-sq piece white?
+(function piece-check pc-sq tg-sq piece white? prom
   (let p (lower-case piece))
   (when (and (!= p "k") (collision-check piece-square target-square)) (return false))
   (match p
-    "p"           (pawn-check pc-sq tg-sq white?)
+    "p"           (pawn-check pc-sq tg-sq white? prom)
     "r"           (rook-check pc-sq tg-sq)
     "k"           (knight-check pc-sq tg-sq)
     "b"           (bishop-check pc-sq tg-sq)
@@ -259,10 +264,11 @@
 
 (function move anot who
   (record-players who)
-  (var [piece-square target-square left?] (catch (chess-parse anot) (chess-castle-parse anot))
+  (var [piece-square target-square left? optprom] (catch (chess-parse anot) (chess-castle-parse anot))
        piece (fetch-piece piece-square)
        white? (lower? piece)
-       !en-passant false)
+       !en-passant false
+       !promotion false)
   
   (when (.. or (.. map out-of-board? [piece-square target-square])) (return (display "Provide a move!")))
 
@@ -273,27 +279,30 @@
   (if (null? left?)
     (if
       (and      
-        (piece-check piece-square target-square piece white?)  
+        (piece-check piece-square target-square piece white? optprom)  
         (! (friend-in-target? target-square white?))
         (! (virtual-move-check? piece-square target-square piece white?)))
       (do 
         (if !en-passant
           (en-passant piece-square target-square piece)
-          (legal-move piece-square target-square piece))
+          (do 
+              (legal-move piece-square target-square piece)
+              (if !promotion
+                  (spawn prom target-square))))
       (success piece))
-      (display "illegal move"))
+      (display "illegal move" disp-min disp-help))
     (if 
       (and
             (can-castle? left? white?)
             (! (collision-check piece-square target-square)))
       (do (castle piece-square target-square white? left?) (success piece))
-      (display "illegal move"))
+      (display "illegal move" disp-min disp-help))
     
   ))
 
 (function row-name row num (str (- 8 num) " | " row))
 
-; (function display comment (str (rreplace "[\"\[\]]" "" (join "\n" board)) "\n" (str* " " (- 8 (len comment))) comment))
+(function display comment (str (rreplace "[\"\[\]]" "" (join "\n" board)) "\n" (str* " " (- 8 (len comment))) comment))
 
 (function display comment
   (if expanded-disp?
