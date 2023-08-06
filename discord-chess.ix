@@ -150,7 +150,6 @@
        last-move-time (time)
        players-clock {:white match-mins, :black match-mins}
        helpful-disp? false expanded-disp? false)
-  (disp-settings)
   (display "Ready" disp-min disp-help))
 
 (function virtual-move-check? sq-piece sq-target piece white?
