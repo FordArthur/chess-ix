@@ -150,7 +150,7 @@
        last-move-time (time)
        players-clock {:white match-mins, :black match-mins}
        helpful-disp? false expanded-disp? false)
-  (display "Ready" disp-min disp-help))
+  (display "Ready"))
 
 (function virtual-move-check? sq-piece sq-target piece white?
   (legal-move sq-piece sq-target piece)
@@ -301,7 +301,7 @@
 
 (function row-name row num (str (- 8 num) " | " row))
 
-(function display comment (str (rreplace "[\"\[\]]" "" (join "\n" board)) "\n" (str* " " (- 8 (len comment))) comment))
+; (function display comment (str (rreplace "[\"\[\]]" "" (join "\n" board)) "\n" (str* " " (- 8 (len comment))) comment))
 
 (function display comment
   (if expanded-disp?
