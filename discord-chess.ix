@@ -289,13 +289,13 @@
               (if !promotion
                   (spawn optprom target-square))))
       (success piece))
-      (display "illegal move" disp-min disp-help))
+      (display "illegal move"))
     (if 
       (and
             (can-castle? left? white?)
             (! (collision-check piece-square target-square)))
       (do (castle piece-square target-square white? left?) (success piece))
-      (display "illegal move" disp-min disp-help))
+      (display "illegal move"))
     
   ))
 
