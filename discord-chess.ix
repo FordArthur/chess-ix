@@ -196,7 +196,7 @@
 (function gen-king-moves [x y] (remove #(.. or (map out-of-board? %)) [[x (inc y)] [x (dec y)] [(inc x) y] [(inc x) (inc y)] [(inc x) (dec y)] [(dec x) y] [(dec x) (inc y)] [(dec x) (dec y)]]))
 
 (function gen-knight-moves sq
-  (for (fn a b (map + a b)) [sq] [[2  1]  [1  2]  [-1  2]  [-2  1]  [-2  -1]  [-1  -2]  [1  -2]  [2  -1]]))
+  (map @(map + sq) [[2  1]  [1  2]  [-1  2]  [-2  1]  [-2  -1]  [-1  -2]  [1  -2]  [2  -1]]))
 
 (function cast-enemies w? square
   (let close-pieces-in (fn dxy (last-piece (final-sq dxy square) (final-sq (map neg dxy) square) square))
