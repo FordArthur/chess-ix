@@ -95,7 +95,7 @@
     "expanded"          (var expanded-disp? true)
     "minimal"           (var expanded-disp? false)
     (return "uknown setting"))
-  (str "Display is now " setting))
+  (display (str "Display is now " setting)))
 
 (function get-help topic
   (match topic
