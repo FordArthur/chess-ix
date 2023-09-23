@@ -94,7 +94,7 @@
     "expanded"          (var expanded-disp? true)
     "minimal"           (var expanded-disp? false)
     (return "uknown setting"))
-  (str "Display is now " setting))
+  (display (str "Display is now " setting)))
 
 (function get-help topic
   (match topic
@@ -141,6 +141,7 @@
   (let middle-ext (fn mid ext (-> (squares-between mid ext true) @(map fetch-piece) @(remove space?) -1)))
   [(middle-ext sq-middle sq-ext) (middle-ext sq-middle sq-extp)])
 
+(var not-override #(if ((symbols) (str %)) % %1))
 (function game-start match-duration
   (let mayor-piece-start ["R" "K" "B" "Q" "I" "B" "K" "R"] match-mins (catch (* 60000 (to-num match-duration)) 72000000))
   (var board [mayor-piece-start (repeat "P" 8) (repeat " " 8) (repeat " " 8) (repeat " " 8) (repeat " " 8) (repeat "p" 8) (map lower-case mayor-piece-start)]
@@ -149,7 +150,7 @@
        move-record []
        last-move-time (time)
        players-clock {:white match-mins, :black match-mins}
-       helpful-disp? false expanded-disp? false)
+       helpful-disp? (not-override "helpful-disp?" false) expanded-disp? (not-override "helpful-disp?" true))
   (display "Ready"))
 
 (function virtual-move-check? sq-piece sq-target piece white?
